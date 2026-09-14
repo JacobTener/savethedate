@@ -144,7 +144,19 @@ body::after {
   flex-wrap: wrap;
   justify-content: center;
   gap: 14px;
-  margin-top: 28px;
+  position: absolute;
+  left: calc(50% - 250px);
+  bottom: 378px;
+}
+
+.actions-2 {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  position: absolute;
+  left: calc(50% - 100px);
+  bottom: 200px;
 }
 
 .button {

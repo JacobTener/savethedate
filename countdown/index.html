@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Countdown | Hannah & Jacob</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero-card">
+        <p class="countdown-eyebrow">Save the Date</p>
+        <h1 class="countdown-names">Hannah &amp; Jacob</h1>
+        <p class="countdown-date">Saturday, August 14th 2027 &middot; Chicago</p>
+
+        <div id="countdown" class="countdown" role="timer" aria-label="Time remaining until August 14, 2027">
+          <div class="countdown-unit">
+            <span class="countdown-value" data-unit="days">0</span>
+            <span class="countdown-label">Days</span>
+          </div>
+          <div class="countdown-unit">
+            <span class="countdown-value" data-unit="hours">00</span>
+            <span class="countdown-label">Hours</span>
+          </div>
+          <div class="countdown-unit">
+            <span class="countdown-value" data-unit="minutes">00</span>
+            <span class="countdown-label">Minutes</span>
+          </div>
+          <div class="countdown-unit">
+            <span class="countdown-value" data-unit="seconds">00</span>
+            <span class="countdown-label">Seconds</span>
+          </div>
+        </div>
+
+        <p id="countdown-arrived" class="countdown-arrived" hidden>
+          The day is here.
+        </p>
+
+        <div class="actions">
+          <a class="button button-primary" href="./save-the-date/">
+            <span>View Save the Date</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <script src="./countdown.js"></script>
+  </body>
+</html>
