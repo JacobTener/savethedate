@@ -21,6 +21,14 @@ const LOCAL_GUEST_LIST = [
     lookupNames: ["Taylor", "Reed"],
   },
   {
+    id: "example-named-plus",
+    household: "Riley Chen",
+    type: "plus_one",
+    members: ["Riley Chen", "Avery Chen"],
+    plusOne: true,
+    lookupNames: ["Riley", "Avery", "Chen"],
+  },
+  {
     id: "example-solo",
     household: "Casey Morgan",
     type: "individual",
@@ -253,10 +261,38 @@ function renderMatchChoices(matches) {
   matchChoices.hidden = false;
 }
 
+function getInviteMembers(match) {
+  const members = (match.members || []).map((member) => member.trim()).filter(Boolean);
+
+  if (members.length) {
+    return members;
+  }
+
+  return match.household ? [match.household] : [];
+}
+
+function hasPlusOne(match) {
+  return Boolean(match.plusOne || match.type === "plus_one") && getInviteMembers(match).length < 2;
+}
+
+function renderInviteList(members) {
+  const list = document.createElement("ul");
+  list.className = "invite-list";
+
+  for (const member of members) {
+    const item = document.createElement("li");
+    item.textContent = member;
+    list.append(item);
+  }
+
+  return list;
+}
+
 function renderPartyPanel(match) {
   partyPanel.replaceChildren();
   selectedMatch = match;
 
+  const members = getInviteMembers(match);
   const heading = document.createElement("p");
   heading.className = "party-heading";
   heading.textContent = match.household;
@@ -275,74 +311,20 @@ function renderPartyPanel(match) {
     lookupNameEl.focus();
   });
 
-  if (match.type === "family") {
-    summary.textContent = "Who will attend?";
-    partyPanel.append(heading, summary);
+  partyPanel.append(heading);
 
-    const none = createChoice("checkbox", "none-attending", "none", "None of us will attend");
-    const noneInput = none.querySelector("input");
-
-    for (const member of match.members) {
-      const choice = createChoice("checkbox", "attending-member", member, member, true);
-      const input = choice.querySelector("input");
-      input.addEventListener("change", () => {
-        if (input.checked) {
-          noneInput.checked = false;
-        }
-      });
-      partyPanel.append(choice);
-    }
-
-    noneInput.addEventListener("change", () => {
-      if (!noneInput.checked) {
-        return;
-      }
-
-      for (const input of partyPanel.querySelectorAll('input[name="attending-member"]')) {
-        input.checked = false;
-      }
-    });
-
-    partyPanel.append(none);
-  } else if (match.plusOne || match.type === "plus_one") {
-    summary.textContent = "You are invited with a plus one.";
-    partyPanel.append(heading, summary);
-    partyPanel.append(createChoice("radio", "plus-one", "no", "Just me", true));
-    partyPanel.append(createChoice("radio", "plus-one", "yes", "I will bring a guest"));
-
-    const guestField = document.createElement("div");
-    guestField.className = "field plus-one-name";
-    guestField.hidden = true;
-
-    const guestLabel = document.createElement("label");
-    guestLabel.className = "field-label";
-    guestLabel.htmlFor = "plus-one-name";
-    guestLabel.textContent = "Guest name";
-
-    const guestInput = document.createElement("input");
-    guestInput.className = "field-input";
-    guestInput.id = "plus-one-name";
-    guestInput.name = "plusOneName";
-    guestInput.type = "text";
-    guestInput.maxLength = 120;
-    guestInput.autocomplete = "off";
-
-    guestField.append(guestLabel, guestInput);
-    partyPanel.append(guestField);
-
-    for (const input of partyPanel.querySelectorAll('input[name="plus-one"]')) {
-      input.addEventListener("change", () => {
-        guestField.hidden = getTrimmedValue("plus-one") !== "yes";
-        if (guestField.hidden) {
-          guestInput.value = "";
-        } else {
-          guestInput.focus();
-        }
-      });
-    }
+  if (members.length > 1) {
+    summary.textContent = "Everyone included on this save the date:";
+    partyPanel.append(summary, renderInviteList(members));
   } else {
-    summary.textContent = "This invitation does not include a plus one.";
-    partyPanel.append(heading, summary);
+    summary.textContent = hasPlusOne(match)
+      ? "This save the date includes a plus one."
+      : "This save the date does not include a plus one.";
+    partyPanel.append(summary);
+
+    if (members.length === 1) {
+      partyPanel.append(renderInviteList(members));
+    }
   }
 
   partyPanel.append(searchAgain);
@@ -483,40 +465,9 @@ async function lookupGuest() {
   }
 }
 
-function getAttendingMembers() {
-  if (!selectedMatch) {
-    return [];
-  }
-
-  if (selectedMatch.type === "family") {
-    if (form.elements.namedItem("none-attending")?.checked) {
-      return [];
-    }
-
-    return Array.from(form.querySelectorAll('input[name="attending-member"]:checked')).map(
-      (input) => input.value
-    );
-  }
-
-  return selectedMatch.members.slice();
-}
-
 function validateForm() {
   if (!selectedMatch) {
     return "Please find your name on the guest list first.";
-  }
-
-  if (selectedMatch.type === "family") {
-    const noneAttending = Boolean(form.elements.namedItem("none-attending")?.checked);
-    if (!noneAttending && getAttendingMembers().length === 0) {
-      return "Please choose who will attend, or select none of us will attend.";
-    }
-  }
-
-  if ((selectedMatch.plusOne || selectedMatch.type === "plus_one") && getTrimmedValue("plus-one") === "yes") {
-    if (!getTrimmedValue("plusOneName")) {
-      return "Please enter your guest’s name.";
-    }
   }
 
   for (const name of ["address1", "city", "state", "zip", "country"]) {
@@ -549,19 +500,15 @@ async function submitAddress(event) {
     return;
   }
 
-  const attending = getAttendingMembers();
-  const bringingPlusOne =
-    (selectedMatch.plusOne || selectedMatch.type === "plus_one") &&
-    getTrimmedValue("plus-one") === "yes";
-
   const payload = {
     names: lookupNameEl.value.trim(),
     household: selectedMatch.household,
     householdId: selectedMatch.id,
     type: selectedMatch.type,
-    attending: attending.join("; "),
-    plusOne: bringingPlusOne ? "yes" : "no",
-    plusOneName: bringingPlusOne ? getTrimmedValue("plusOneName") : "",
+    attending: getInviteMembers(selectedMatch).join("; "),
+    declining: "",
+    plusOne: hasPlusOne(selectedMatch) ? "yes" : "no",
+    plusOneName: "",
     address1: getTrimmedValue("address1"),
     address2: getTrimmedValue("address2"),
     city: getTrimmedValue("city"),

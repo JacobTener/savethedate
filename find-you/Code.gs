@@ -8,6 +8,7 @@ const ADDRESS_HEADERS = [
   "Household",
   "Type",
   "Attending",
+  "Declining",
   "Plus one",
   "Plus one name",
   "Address 1",
@@ -31,6 +32,7 @@ const EXAMPLE_GUESTS = [
     "no",
   ],
   ["Taylor Reed", "Taylor, Reed", "plus_one", "Taylor Reed", "yes"],
+  ["Riley Chen", "Riley, Avery, Chen", "plus_one", "Riley Chen; Avery Chen", "yes"],
   ["Casey Morgan", "Casey, Morgan", "individual", "Casey Morgan", "no"],
 ];
 
@@ -51,6 +53,7 @@ function doPost(e) {
       params.household || "",
       params.type || "",
       params.attending || "",
+      params.declining || "",
       params.plusOne || "",
       params.plusOneName || "",
       params.address1 || "",

@@ -15,7 +15,9 @@
   <body>
     <main class="page-shell">
       <section class="hero-card">
-        <a class="home-link" href="../">Home</a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="nav-link" href="../">Home</a>
+        </nav>
 
         <div class="invite-art">
           <img
@@ -28,7 +30,7 @@
         <div class="actions">
           <a
             id="google-calendar-link"
-            class="button button-primary"
+            class="button button-secondary"
             href="#"
             target="_blank"
             rel="noreferrer"
@@ -46,7 +48,11 @@
             </svg>
             <span>Add to Google Calendar</span>
           </a>
-          <a id="apple-calendar-link" class="button button-secondary" href="#">
+          <a
+            id="apple-calendar-link"
+            class="button button-secondary"
+            href="/save-the-date.ics"
+          >
             <svg
               class="button-icon"
               viewBox="0 0 24 24"
@@ -64,8 +70,16 @@
 
         <p class="invite-follow">Formal Invitation to Follow</p>
 
-        <div class="actions actions-find">
-          <a class="button button-primary" href="../find-you/">Help us find you!</a>
+        <div class="address-cta">
+          <p class="address-cta-kicker">Please do this next</p>
+          <h2 class="address-cta-title">Add your mailing address</h2>
+          <p class="address-cta-copy">
+            We need your address to send your invitation. Tap below to look up
+            your household and share where we should mail it.
+          </p>
+          <a class="button button-primary address-cta-button" href="../find-you/">
+            Send us your address
+          </a>
         </div>
       </section>
     </main>

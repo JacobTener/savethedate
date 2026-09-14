@@ -26,14 +26,6 @@ function toUtcDateStamp(dateString) {
   return parts.join("");
 }
 
-function escapeIcsText(value) {
-  return value
-    .replace(/\\/g, "\\\\")
-    .replace(/,/g, "\\,")
-    .replace(/;/g, "\\;")
-    .replace(/\n/g, "\\n");
-}
-
 function buildGoogleCalendarUrl(details) {
   const url = new URL("https://calendar.google.com/calendar/render");
   url.searchParams.set("action", "TEMPLATE");
@@ -48,35 +40,20 @@ function buildGoogleCalendarUrl(details) {
   return url.toString();
 }
 
-function buildIcsContent(details) {
-  const nowStamp = toUtcDateStamp(new Date().toISOString());
-
-  return [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//SaveTheDate//Wedding Event//EN",
-    "BEGIN:VEVENT",
-    `UID:${crypto.randomUUID()}@savethedate.local`,
-    `DTSTAMP:${nowStamp}`,
-    `DTSTART:${toUtcDateStamp(details.start)}`,
-    `DTEND:${toUtcDateStamp(details.end)}`,
-    `SUMMARY:${escapeIcsText(details.title)}`,
-    `DESCRIPTION:${escapeIcsText(details.description)}`,
-    `LOCATION:${escapeIcsText(details.location)}`,
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].join("\r\n");
-}
-
-function buildAppleCalendarUrl(details) {
-  const content = buildIcsContent(details);
-  const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
-  return URL.createObjectURL(blob);
+function isAppleMobile() {
+  const userAgent = navigator.userAgent || "";
+  return (
+    /iPad|iPhone|iPod/.test(userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
 }
 
 const googleLink = document.getElementById("google-calendar-link");
 const appleLink = document.getElementById("apple-calendar-link");
 
 googleLink.href = buildGoogleCalendarUrl(eventDetails);
-appleLink.href = buildAppleCalendarUrl(eventDetails);
-appleLink.download = eventDetails.icsFileName;
+appleLink.href = "/save-the-date.ics";
+
+if (!isAppleMobile()) {
+  appleLink.setAttribute("download", eventDetails.icsFileName);
+}
