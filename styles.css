@@ -92,19 +92,68 @@ body::after {
   color: var(--accent);
 }
 
-.home-photo {
+.page-shell-home {
+  place-items: start center;
+  padding-top: 36px;
+  padding-bottom: 48px;
+}
+
+.home-card {
+  width: min(100%, 720px);
+}
+
+.photo-collage {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  grid-template-rows: 150px 150px;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.photo-collage img {
   display: block;
   width: 100%;
-  height: auto;
-  margin-top: 22px;
-  border-radius: 20px;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+.collage-hero {
+  grid-row: 1 / span 2;
+  object-position: center 18%;
+}
+
+.photo-collage img:nth-child(2) {
+  object-position: 20% 30%;
+}
+
+.photo-collage img:nth-child(3) {
+  object-position: 80% 40%;
+}
+
+.photo-collage img:nth-child(4) {
+  object-position: 40% 70%;
+}
+
+.photo-collage img:nth-child(5) {
+  object-position: 70% 80%;
+}
+
+.home-countdown {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.home-countdown .countdown {
+  margin-top: 18px;
 }
 
 .invite-art {
   overflow: hidden;
   width: 100%;
-  /* Crop the invitation just after the date so buttons can sit in normal flow. */
-  aspect-ratio: 1250 / 1500;
+  /* Crop just below the date so calendar buttons sit in that space. */
+  aspect-ratio: 1500 / 1290;
   border-radius: 20px;
 }
 
@@ -112,6 +161,10 @@ body::after {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.actions-calendar {
+  margin-top: 18px;
 }
 
 .countdown-eyebrow {
@@ -512,8 +565,8 @@ body::after {
 
 .button-secondary {
   color: var(--accent-dark);
-  background: rgba(255, 255, 255, 0.84);
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  border: 2px solid rgba(0, 0, 0, 0.78);
 }
 
 .button-secondary:hover {
@@ -537,6 +590,16 @@ body::after {
   .hero-card {
     padding: 18px 18px 28px;
     border-radius: 24px;
+  }
+
+  .photo-collage {
+    grid-template-columns: 1.2fr 1fr;
+    grid-template-rows: 140px 120px 120px;
+  }
+
+  .collage-hero {
+    grid-row: 1;
+    grid-column: 1 / span 2;
   }
 
   .countdown {

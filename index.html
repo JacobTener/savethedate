@@ -13,20 +13,56 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="page-shell">
-      <section class="hero-card">
+    <main class="page-shell page-shell-home">
+      <section class="hero-card home-card">
         <p class="countdown-eyebrow">August 14, 2027</p>
         <h1 class="countdown-names">Hannah &amp; Jacob</h1>
-        <img
-          class="home-photo"
-          src="./hamnah.jpg"
-          alt="Hannah Forrestal and Jacob Tener"
-        />
+        <p class="countdown-date">Saturday, August 14th 2027 &middot; Chicago</p>
+
+        <div class="photo-collage" aria-label="Photo collage of Hannah and Jacob">
+          <img class="collage-hero" src="./photos/1.jpg" alt="Hannah and Jacob" />
+          <img src="./photos/2.jpg" alt="" />
+          <img src="./photos/3.jpg" alt="" />
+          <img src="./photos/4.jpg" alt="" />
+          <img src="./photos/5.jpg" alt="" />
+        </div>
+
         <div class="actions">
-          <a class="button button-secondary" href="./countdown/">Countdown</a>
           <a class="button button-primary" href="./save-the-date/">Save the Date</a>
         </div>
+
+        <section class="home-countdown" id="countdown-section" aria-label="Countdown">
+          <p class="countdown-eyebrow">Until we celebrate</p>
+          <div
+            id="countdown"
+            class="countdown"
+            role="timer"
+            aria-label="Time remaining until August 14, 2027"
+          >
+            <div class="countdown-unit">
+              <span class="countdown-value" data-unit="days">0</span>
+              <span class="countdown-label">Days</span>
+            </div>
+            <div class="countdown-unit">
+              <span class="countdown-value" data-unit="hours">00</span>
+              <span class="countdown-label">Hours</span>
+            </div>
+            <div class="countdown-unit">
+              <span class="countdown-value" data-unit="minutes">00</span>
+              <span class="countdown-label">Minutes</span>
+            </div>
+            <div class="countdown-unit">
+              <span class="countdown-value" data-unit="seconds">00</span>
+              <span class="countdown-label">Seconds</span>
+            </div>
+          </div>
+          <p id="countdown-arrived" class="countdown-arrived" hidden>
+            The day is here.
+          </p>
+        </section>
       </section>
     </main>
+
+    <script src="./countdown/countdown.js"></script>
   </body>
 </html>

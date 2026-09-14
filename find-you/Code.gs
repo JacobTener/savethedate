@@ -109,7 +109,7 @@ function embedLookup_(result) {
 function lookupGuests_(rawName) {
   const query = String(rawName || "").trim();
 
-  if (query.length < 3) {
+  if (!query) {
     return { matches: [] };
   }
 
@@ -127,8 +127,7 @@ function lookupGuests_(rawName) {
       continue;
     }
 
-    const candidates = [household].concat(lookupNames, members);
-    if (!candidates.some(function (name) { return nameMatches_(query, name); })) {
+    if (!lookupNames.some(function (name) { return nameMatches_(query, name); })) {
       continue;
     }
 
@@ -153,25 +152,7 @@ function nameMatches_(query, candidate) {
   const normalizedQuery = normalizeName_(query);
   const normalizedCandidate = normalizeName_(candidate);
 
-  if (normalizedQuery.length < 3 || !normalizedCandidate) {
-    return false;
-  }
-
-  if (normalizedCandidate === normalizedQuery) {
-    return true;
-  }
-
-  const queryTokens = normalizedQuery.split(" ");
-  const candidateTokens = normalizedCandidate.split(" ");
-
-  return queryTokens.every(function (queryToken) {
-    return candidateTokens.some(function (candidateToken) {
-      return (
-        candidateToken === queryToken ||
-        (queryToken.length >= 3 && candidateToken.indexOf(queryToken) === 0)
-      );
-    });
-  });
+  return Boolean(normalizedQuery) && normalizedQuery === normalizedCandidate;
 }
 
 function normalizeName_(value) {

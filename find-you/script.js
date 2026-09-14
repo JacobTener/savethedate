@@ -1,6 +1,6 @@
 // Paste the Google Apps Script web app URL after deploying find-you/Code.gs.
 // The Guest List sheet is the source of truth for plus-ones and family members.
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzomhD3Lp3D34B5s5RpgVrqW9HzSgI2aKTftE0Ll3oKbo3aYwDq3WjjvhXJRFe_yyNTQQ/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAGqlW1hT_Tyq4AaOg1ufZgT8Ml_HGkT90rzKVcsZhkbidlvcc_pJW_aotANGRxp5blQ/exec";
 
 // Used only before the Google Sheet is connected, so the page can be tried locally.
 const LOCAL_GUEST_LIST = [
@@ -116,42 +116,15 @@ function normalizeName(value) {
     .trim();
 }
 
-function nameTokens(value) {
-  return normalizeName(value).split(" ").filter(Boolean);
-}
-
 function nameMatches(query, candidate) {
   const normalizedQuery = normalizeName(query);
   const normalizedCandidate = normalizeName(candidate);
 
-  if (normalizedQuery.length < 3 || !normalizedCandidate) {
-    return false;
-  }
-
-  if (normalizedCandidate === normalizedQuery) {
-    return true;
-  }
-
-  const queryTokens = nameTokens(query);
-  const candidateTokens = nameTokens(candidate);
-
-  return queryTokens.every((queryToken) =>
-    candidateTokens.some(
-      (candidateToken) =>
-        candidateToken === queryToken ||
-        (queryToken.length >= 3 && candidateToken.startsWith(queryToken))
-    )
-  );
+  return Boolean(normalizedQuery) && normalizedQuery === normalizedCandidate;
 }
 
 function householdMatches(query, household) {
-  const candidates = [
-    household.household,
-    ...(household.lookupNames || []),
-    ...(household.members || []),
-  ];
-
-  return candidates.some((candidate) => nameMatches(query, candidate));
+  return (household.lookupNames || []).some((candidate) => nameMatches(query, candidate));
 }
 
 function populateUsStates() {
@@ -420,8 +393,8 @@ async function lookupGuest() {
   showError("");
   resetMatchState();
 
-  if (name.length < 3) {
-    setLookupStatus("Enter at least 3 letters of a name.");
+  if (name.length < 1) {
+    setLookupStatus("Enter a lookup name from your invitation.");
     return;
   }
 
@@ -437,7 +410,7 @@ async function lookupGuest() {
     if (!matches.length) {
       logLookup("no matches", name);
       setLookupStatus(
-        `We could not find “${name}” on the guest list. Try another name from the household.`
+        `We could not find “${name}” on the guest list. Enter a lookup name exactly as listed.`
       );
       return;
     }
