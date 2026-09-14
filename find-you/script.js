@@ -1,6 +1,6 @@
 // Paste the Google Apps Script web app URL after deploying find-you/Code.gs.
 // The Guest List sheet is the source of truth for plus-ones and family members.
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAGqlW1hT_Tyq4AaOg1ufZgT8Ml_HGkT90rzKVcsZhkbidlvcc_pJW_aotANGRxp5blQ/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1DDcG1PlXo9bOowGnkreTzw3nZmRk7Tc09zJAJCDiN0Ds4fmlBhUO1D-UMQzEHpUuyA/exec";
 
 // Used only before the Google Sheet is connected, so the page can be tried locally.
 const LOCAL_GUEST_LIST = [
@@ -244,17 +244,84 @@ function getInviteMembers(match) {
   return match.household ? [match.household] : [];
 }
 
-function hasPlusOne(match) {
-  return Boolean(match.plusOne || match.type === "plus_one") && getInviteMembers(match).length < 2;
+function invitationHasPlusOne(match) {
+  return Boolean(match.plusOne || match.type === "plus_one");
 }
 
-function renderInviteList(members) {
-  const list = document.createElement("ul");
-  list.className = "invite-list";
+function hasUnnamedPlusOne(match) {
+  return invitationHasPlusOne(match) && getInviteMembers(match).length < 2;
+}
 
-  for (const member of members) {
-    const item = document.createElement("li");
-    item.textContent = member;
+function getInitials(name) {
+  const parts = String(name || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (!parts.length) {
+    return "+";
+  }
+
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function getInvitePeople(match) {
+  const members = getInviteMembers(match);
+  const people = members.map((name, index) => ({
+    name,
+    role: invitationHasPlusOne(match) && index > 0 ? "Plus one" : "Invited",
+    kind: invitationHasPlusOne(match) && index > 0 ? "plus-one" : "guest",
+  }));
+
+  if (hasUnnamedPlusOne(match)) {
+    people.push({
+      name: "Plus one",
+      role: "Included on this invitation",
+      kind: "plus-one",
+    });
+  }
+
+  return people;
+}
+
+function renderGuestCard(person) {
+  const card = document.createElement("article");
+  card.className =
+    person.kind === "plus-one" ? "guest-card guest-card-plus" : "guest-card";
+
+  const mark = document.createElement("span");
+  mark.className = "guest-card-mark";
+  mark.setAttribute("aria-hidden", "true");
+  mark.textContent = person.kind === "plus-one" && person.name === "Plus one" ? "+" : getInitials(person.name);
+
+  const copy = document.createElement("div");
+  copy.className = "guest-card-copy";
+
+  const role = document.createElement("p");
+  role.className = "guest-card-role";
+  role.textContent = person.role;
+
+  const name = document.createElement("p");
+  name.className = "guest-card-name";
+  name.textContent = person.name;
+
+  copy.append(role, name);
+  card.append(mark, copy);
+  return card;
+}
+
+function renderGuestCards(people) {
+  const list = document.createElement("div");
+  list.className = "guest-card-list";
+  list.setAttribute("role", "list");
+
+  for (const person of people) {
+    const item = renderGuestCard(person);
+    item.setAttribute("role", "listitem");
     list.append(item);
   }
 
@@ -265,13 +332,21 @@ function renderPartyPanel(match) {
   partyPanel.replaceChildren();
   selectedMatch = match;
 
-  const members = getInviteMembers(match);
+  const people = getInvitePeople(match);
   const heading = document.createElement("p");
   heading.className = "party-heading";
   heading.textContent = match.household;
 
   const summary = document.createElement("p");
   summary.className = "party-summary";
+
+  if (hasUnnamedPlusOne(match)) {
+    summary.textContent = "This save the date includes a plus one.";
+  } else if (people.length > 1) {
+    summary.textContent = "Everyone included on this save the date:";
+  } else {
+    summary.textContent = "This save the date does not include a plus one.";
+  }
 
   const searchAgain = document.createElement("button");
   searchAgain.type = "button";
@@ -284,23 +359,7 @@ function renderPartyPanel(match) {
     lookupNameEl.focus();
   });
 
-  partyPanel.append(heading);
-
-  if (members.length > 1) {
-    summary.textContent = "Everyone included on this save the date:";
-    partyPanel.append(summary, renderInviteList(members));
-  } else {
-    summary.textContent = hasPlusOne(match)
-      ? "This save the date includes a plus one."
-      : "This save the date does not include a plus one.";
-    partyPanel.append(summary);
-
-    if (members.length === 1) {
-      partyPanel.append(renderInviteList(members));
-    }
-  }
-
-  partyPanel.append(searchAgain);
+  partyPanel.append(heading, summary, renderGuestCards(people), searchAgain);
   partyPanel.hidden = false;
   addressSection.hidden = false;
 }
@@ -323,18 +382,19 @@ function isAppsScriptOrigin(origin) {
   }
 }
 
-function queryGuestList(name) {
-  if (!APPS_SCRIPT_URL) {
-    const matches = LOCAL_GUEST_LIST.filter((household) => householdMatches(name, household));
-    logLookup("local lookup", { name, matchCount: matches.length });
-    return Promise.resolve({ matches });
-  }
+let guestCatalogPromise = null;
+let guestCatalogReady = false;
 
+function requestAppsScript(params) {
   return new Promise((resolve, reject) => {
+    const requestId = "req_" + Math.random().toString(36).slice(2);
     const url = new URL(APPS_SCRIPT_URL);
-    url.searchParams.set("action", "lookup");
-    url.searchParams.set("name", name);
     url.searchParams.set("embed", "1");
+    url.searchParams.set("requestId", requestId);
+
+    for (const [key, value] of Object.entries(params)) {
+      url.searchParams.set(key, value);
+    }
 
     const iframe = document.createElement("iframe");
     iframe.hidden = true;
@@ -361,7 +421,6 @@ function queryGuestList(name) {
 
     function onMessage(event) {
       if (!isAppsScriptOrigin(event.origin)) {
-        logLookup("ignored message origin", event.origin);
         return;
       }
 
@@ -370,22 +429,55 @@ function queryGuestList(name) {
         return;
       }
 
-      logLookup("lookup response", {
-        name,
-        matchCount: Array.isArray(data.result && data.result.matches)
-          ? data.result.matches.length
-          : 0,
-      });
+      if (data.requestId && data.requestId !== requestId) {
+        return;
+      }
+
       finish(() =>
-        resolve(data.result && typeof data.result === "object" ? data.result : { matches: [] })
+        resolve(data.result && typeof data.result === "object" ? data.result : {})
       );
     }
 
     window.addEventListener("message", onMessage);
     iframe.src = url.toString();
-    logLookup("lookup request", { name, url: url.toString() });
     document.body.appendChild(iframe);
   });
+}
+
+function getGuestCatalog() {
+  if (!APPS_SCRIPT_URL) {
+    return Promise.resolve(LOCAL_GUEST_LIST);
+  }
+
+  if (!guestCatalogPromise) {
+    logLookup("prefetch catalog");
+    guestCatalogPromise = requestAppsScript({ action: "catalog" })
+      .then((result) => {
+        const households = result.households || [];
+        guestCatalogReady = true;
+        logLookup("catalog ready", { households: households.length });
+        return households;
+      })
+      .catch((error) => {
+        guestCatalogPromise = null;
+        guestCatalogReady = false;
+        throw error;
+      });
+  }
+
+  return guestCatalogPromise;
+}
+
+function queryGuestList(name) {
+  return getGuestCatalog().then((households) => {
+    const matches = households.filter((household) => householdMatches(name, household));
+    logLookup("local lookup", { name, matchCount: matches.length });
+    return { matches };
+  });
+}
+
+if (APPS_SCRIPT_URL) {
+  getGuestCatalog();
 }
 
 async function lookupGuest() {
@@ -400,7 +492,11 @@ async function lookupGuest() {
 
   lookupButton.disabled = true;
   lookupButton.textContent = "Finding…";
-  setLookupStatus("Looking up your invitation…");
+  setLookupStatus(
+    APPS_SCRIPT_URL && !guestCatalogReady
+      ? "Loading the guest list…"
+      : "Looking up your invitation…"
+  );
   logLookup("find clicked", name);
 
   try {
@@ -478,10 +574,12 @@ async function submitAddress(event) {
     household: selectedMatch.household,
     householdId: selectedMatch.id,
     type: selectedMatch.type,
-    attending: getInviteMembers(selectedMatch).join("; "),
+    attending: getInvitePeople(selectedMatch)
+      .map((person) => person.name)
+      .join("; "),
     declining: "",
-    plusOne: hasPlusOne(selectedMatch) ? "yes" : "no",
-    plusOneName: "",
+    plusOne: invitationHasPlusOne(selectedMatch) ? "yes" : "no",
+    plusOneName: hasUnnamedPlusOne(selectedMatch) ? "Plus one" : "",
     address1: getTrimmedValue("address1"),
     address2: getTrimmedValue("address2"),
     city: getTrimmedValue("city"),

@@ -69,27 +69,52 @@ body::after {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px 20px;
-  margin: 0 0 18px;
+  gap: 10px;
+  margin: 0 0 22px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .nav-link,
 .home-link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   margin: 0;
-  font-size: 0.78rem;
+  padding: 9px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   text-decoration: none;
-  color: rgba(28, 28, 28, 0.52);
+  color: rgba(28, 28, 28, 0.62);
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .nav-link:hover,
 .home-link:hover {
   color: var(--accent);
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.22);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+.nav-link-back::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-right: 2px;
+  border-left: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
 }
 
 .page-shell-home {
@@ -150,11 +175,47 @@ body::after {
 }
 
 .invite-art {
+  position: relative;
   overflow: hidden;
   width: 100%;
   /* Crop just below the date so calendar buttons sit in that space. */
   aspect-ratio: 1500 / 1290;
   border-radius: 20px;
+}
+
+.invite-home-link {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px 7px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(28, 28, 28, 0.62);
+}
+
+.invite-home-link::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-left: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.invite-home-link:hover {
+  color: var(--accent);
+  background: #ffffff;
 }
 
 .save-the-date-image {
@@ -406,19 +467,72 @@ body::after {
   accent-color: var(--accent);
 }
 
-.invite-list {
-  margin: 0;
-  padding: 16px 18px 16px 2.1rem;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.88);
+.guest-card-list {
+  display: grid;
+  gap: 10px;
+}
+
+.guest-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 243, 239, 0.88));
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.04);
   text-align: left;
 }
 
-.invite-list li {
-  margin: 0.35em 0;
-  font-size: 1.02rem;
+.guest-card-plus {
+  border-style: dashed;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(247, 243, 239, 0.72));
+}
+
+.guest-card-mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(28, 28, 28, 0.08);
+  color: var(--accent);
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.05rem;
   font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.guest-card-plus .guest-card-mark {
+  background: rgba(28, 28, 28, 0.05);
+}
+
+.guest-card-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.guest-card-role {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(28, 28, 28, 0.48);
+}
+
+.guest-card-name {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(1.2rem, 4vw, 1.55rem);
+  font-weight: 500;
+  line-height: 1.2;
   color: var(--accent);
 }
 

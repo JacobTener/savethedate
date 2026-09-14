@@ -79,22 +79,27 @@ function setup() {
 function doGet(e) {
   const params = (e && e.parameter) || {};
 
+  if (params.action === "catalog") {
+    const result = { households: getGuestHouseholds_() };
+    return params.embed === "1"
+      ? embedLookup_(result, params.requestId)
+      : json_(result, params.callback);
+  }
+
   if (params.action === "lookup") {
     const result = lookupGuests_(params.name || "");
-
-    if (params.embed === "1") {
-      return embedLookup_(result);
-    }
-
-    return json_(result, params.callback);
+    return params.embed === "1"
+      ? embedLookup_(result, params.requestId)
+      : json_(result, params.callback);
   }
 
   return json_({ ok: true }, params.callback);
 }
 
-function embedLookup_(result) {
+function embedLookup_(result, requestId) {
   const payload = JSON.stringify({
     source: "hannah-jake-lookup",
+    requestId: requestId || "",
     result: result,
   }).replace(/</g, "\\u003c");
 
@@ -113,8 +118,41 @@ function lookupGuests_(rawName) {
     return { matches: [] };
   }
 
-  const rows = getGuestSheet_().getDataRange().getValues();
-  const matches = [];
+  const matches = getGuestHouseholds_().filter(function (household) {
+    return (household.lookupNames || []).some(function (name) {
+      return nameMatches_(query, name);
+    });
+  });
+
+  return { matches: matches.slice(0, 8) };
+}
+
+function getGuestHouseholds_() {
+  const cache = CacheService.getScriptCache();
+
+  try {
+    const cached = cache.get("guest_households_v1");
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (error) {
+    // Ignore cache misses and size limits.
+  }
+
+  const households = readGuestHouseholdsFromSheet_();
+
+  try {
+    cache.put("guest_households_v1", JSON.stringify(households), 300);
+  } catch (error) {
+    // Guest lists larger than the cache cap still work without caching.
+  }
+
+  return households;
+}
+
+function readGuestHouseholdsFromSheet_() {
+  const rows = getGuestSheetRead_().getDataRange().getValues();
+  const households = [];
 
   for (let i = 1; i < rows.length; i += 1) {
     const household = String(rows[i][0] || "").trim();
@@ -127,11 +165,7 @@ function lookupGuests_(rawName) {
       continue;
     }
 
-    if (!lookupNames.some(function (name) { return nameMatches_(query, name); })) {
-      continue;
-    }
-
-    matches.push({
+    households.push({
       id: String(i + 1),
       household: household || members[0] || "Guest",
       type: type,
@@ -139,13 +173,24 @@ function lookupGuests_(rawName) {
       plusOne: type === "family" ? false : plusOne,
       lookupNames: lookupNames,
     });
+  }
 
-    if (matches.length >= 8) {
-      break;
+  return households;
+}
+
+function getGuestSheetRead_() {
+  const props = PropertiesService.getScriptProperties();
+  const sheetId = props.getProperty(SHEET_ID_KEY);
+
+  if (sheetId) {
+    const spreadsheet = SpreadsheetApp.openById(sheetId);
+    const sheet = spreadsheet.getSheetByName(GUEST_SHEET);
+    if (sheet) {
+      return sheet;
     }
   }
 
-  return { matches: matches };
+  return getGuestSheet_();
 }
 
 function nameMatches_(query, candidate) {
