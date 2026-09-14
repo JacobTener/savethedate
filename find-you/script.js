@@ -345,7 +345,7 @@ function renderPartyPanel(match) {
   } else if (people.length > 1) {
     summary.textContent = "Everyone included on this save the date:";
   } else {
-    summary.textContent = "This save the date does not include a guest.";
+    summary.textContent = "";
   }
 
   partyPanel.append(heading, summary, renderGuestCards(people));
