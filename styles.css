@@ -65,11 +65,33 @@ body::after {
   animation: rise 700ms ease-out both;
 }
 
+.home-link {
+  display: inline-block;
+  margin: 0 0 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(28, 28, 28, 0.52);
+}
+
+.home-link:hover {
+  color: var(--accent);
+}
+
+.invite-art {
+  overflow: hidden;
+  width: 100%;
+  /* Crop the invitation just after the date so buttons can sit in normal flow. */
+  aspect-ratio: 1250 / 1500;
+  border-radius: 20px;
+}
+
 .save-the-date-image {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 20px;
 }
 
 .countdown-eyebrow {
@@ -144,19 +166,20 @@ body::after {
   flex-wrap: wrap;
   justify-content: center;
   gap: 14px;
-  position: absolute;
-  left: calc(50% - 250px);
-  bottom: 378px;
+  margin-top: 28px;
 }
 
-.actions-2 {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
-  position: absolute;
-  left: calc(50% - 100px);
-  bottom: 200px;
+.invite-follow {
+  margin: 28px 0 0;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(1.2rem, 3.2vw, 1.7rem);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+}
+
+.actions-find {
+  margin-top: 22px;
 }
 
 .button {
