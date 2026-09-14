@@ -1,6 +1,6 @@
 // Paste the Google Apps Script web app URL after deploying find-you/Code.gs.
 // The Guest List sheet is the source of truth for plus-ones and family members.
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzd2rxSD9FqgsH8PrmO61jeIRnOQq1zUpIKvl_KZVRFh3zxjZv2kMvOo1KxO1nllIcjxQ/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYGNFkfa1LMeMU8ApbgNtWauEqUNOza2-mv3WfZuo0cdwrHjMLAidwNffL5eH0uvSIRg/exec";
 
 // Used only before the Google Sheet is connected, so the page can be tried locally.
 const LOCAL_GUEST_LIST = [
