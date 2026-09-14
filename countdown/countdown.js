@@ -1,4 +1,4 @@
-const TARGET_DATE = new Date("2027-08-14T16:00:00-05:00");
+const TARGET_DATE = new Date("2027-08-14T17:00:00-05:00");
 
 const countdownEl = document.getElementById("countdown");
 const arrivedEl = document.getElementById("countdown-arrived");
