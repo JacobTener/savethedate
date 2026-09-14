@@ -350,23 +350,44 @@ function renderPartyPanel(match) {
   addressSection.hidden = false;
 }
 
-async function queryGuestList(name) {
+function queryGuestList(name) {
   if (!APPS_SCRIPT_URL) {
-    return {
+    return Promise.resolve({
       matches: LOCAL_GUEST_LIST.filter((household) => householdMatches(name, household)),
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const callbackName = "guestLookup_" + Math.random().toString(36).slice(2);
+    const url = new URL(APPS_SCRIPT_URL);
+    url.searchParams.set("action", "lookup");
+    url.searchParams.set("name", name);
+    url.searchParams.set("callback", callbackName);
+
+    const script = document.createElement("script");
+    const timeout = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("lookup timed out"));
+    }, 15000);
+
+    function cleanup() {
+      window.clearTimeout(timeout);
+      delete window[callbackName];
+      script.remove();
+    }
+
+    window[callbackName] = (data) => {
+      cleanup();
+      resolve(data);
     };
-  }
 
-  const url = new URL(APPS_SCRIPT_URL);
-  url.searchParams.set("action", "lookup");
-  url.searchParams.set("name", name);
-  const response = await fetch(url.toString());
-
-  if (!response.ok) {
-    throw new Error("lookup failed");
-  }
-
-  return response.json();
+    script.src = url.toString();
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("lookup failed"));
+    };
+    document.head.appendChild(script);
+  });
 }
 
 async function lookupGuest() {

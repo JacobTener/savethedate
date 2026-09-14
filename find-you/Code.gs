@@ -72,10 +72,10 @@ function doGet(e) {
   const params = (e && e.parameter) || {};
 
   if (params.action === "lookup") {
-    return json_(lookupGuests_(params.name || ""));
+    return json_(lookupGuests_(params.name || ""), params.callback);
   }
 
-  return json_({ ok: true });
+  return json_({ ok: true }, params.callback);
 }
 
 function lookupGuests_(rawName) {
@@ -225,8 +225,16 @@ function ensureSheet_(name, headers, seedRows) {
   return sheet;
 }
 
-function json_(payload) {
-  return ContentService.createTextOutput(JSON.stringify(payload)).setMimeType(
+function json_(payload, callback) {
+  const body = JSON.stringify(payload);
+
+  if (callback && /^[A-Za-z_$][\w$]*$/.test(callback)) {
+    return ContentService.createTextOutput(callback + "(" + body + ")").setMimeType(
+      ContentService.MimeType.JAVASCRIPT
+    );
+  }
+
+  return ContentService.createTextOutput(body).setMimeType(
     ContentService.MimeType.JSON
   );
 }
