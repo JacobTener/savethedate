@@ -1,6 +1,6 @@
 // Paste the Google Apps Script web app URL after deploying find-you/Code.gs.
 // The Guest List sheet is the source of truth for plus-ones and family members.
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYGNFkfa1LMeMU8ApbgNtWauEqUNOza2-mv3WfZuo0cdwrHjMLAidwNffL5eH0uvSIRg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzomhD3Lp3D34B5s5RpgVrqW9HzSgI2aKTftE0Ll3oKbo3aYwDq3WjjvhXJRFe_yyNTQQ/exec";
 
 // Used only before the Google Sheet is connected, so the page can be tried locally.
 const LOCAL_GUEST_LIST = [
@@ -350,24 +350,46 @@ function renderPartyPanel(match) {
   addressSection.hidden = false;
 }
 
+function logLookup(step, extra) {
+  if (extra !== undefined) {
+    console.info("[find-you]", step, extra);
+    return;
+  }
+
+  console.info("[find-you]", step);
+}
+
+function isAppsScriptOrigin(origin) {
+  try {
+    const host = new URL(origin).hostname;
+    return host === "script.google.com" || host.endsWith(".googleusercontent.com");
+  } catch (error) {
+    return false;
+  }
+}
+
 function queryGuestList(name) {
   if (!APPS_SCRIPT_URL) {
-    return Promise.resolve({
-      matches: LOCAL_GUEST_LIST.filter((household) => householdMatches(name, household)),
-    });
+    const matches = LOCAL_GUEST_LIST.filter((household) => householdMatches(name, household));
+    logLookup("local lookup", { name, matchCount: matches.length });
+    return Promise.resolve({ matches });
   }
 
   return new Promise((resolve, reject) => {
-    const callbackName = "guestLookup_" + Math.random().toString(36).slice(2);
     const url = new URL(APPS_SCRIPT_URL);
     url.searchParams.set("action", "lookup");
     url.searchParams.set("name", name);
-    url.searchParams.set("callback", callbackName);
+    url.searchParams.set("embed", "1");
 
-    const script = document.createElement("script");
+    const iframe = document.createElement("iframe");
+    iframe.hidden = true;
+    iframe.title = "Guest list lookup";
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.style.cssText = "position:absolute;width:0;height:0;border:0;visibility:hidden";
+
     let settled = false;
     const timeout = window.setTimeout(() => {
-      finish(() => reject(new Error("lookup timed out")));
+      finish(() => reject(new Error("The guest list took too long to respond.")));
     }, 20000);
 
     function finish(action) {
@@ -377,20 +399,37 @@ function queryGuestList(name) {
 
       settled = true;
       window.clearTimeout(timeout);
-      delete window[callbackName];
-      script.remove();
+      window.removeEventListener("message", onMessage);
+      iframe.remove();
       action();
     }
 
-    window[callbackName] = (data) => {
-      finish(() => resolve(data && typeof data === "object" ? data : { matches: [] }));
-    };
+    function onMessage(event) {
+      if (!isAppsScriptOrigin(event.origin)) {
+        logLookup("ignored message origin", event.origin);
+        return;
+      }
 
-    script.async = true;
-    script.src = url.toString();
-    // Apps Script always 302s to googleusercontent.com. Browsers often fire
-    // onerror for that redirect even when the lookup later returns 200.
-    document.head.appendChild(script);
+      const data = event.data;
+      if (!data || data.source !== "hannah-jake-lookup") {
+        return;
+      }
+
+      logLookup("lookup response", {
+        name,
+        matchCount: Array.isArray(data.result && data.result.matches)
+          ? data.result.matches.length
+          : 0,
+      });
+      finish(() =>
+        resolve(data.result && typeof data.result === "object" ? data.result : { matches: [] })
+      );
+    }
+
+    window.addEventListener("message", onMessage);
+    iframe.src = url.toString();
+    logLookup("lookup request", { name, url: url.toString() });
+    document.body.appendChild(iframe);
   });
 }
 
@@ -407,17 +446,24 @@ async function lookupGuest() {
   lookupButton.disabled = true;
   lookupButton.textContent = "Finding…";
   setLookupStatus("Looking up your invitation…");
+  logLookup("find clicked", name);
 
   try {
     const result = await queryGuestList(name);
     const matches = result.matches || [];
 
     if (!matches.length) {
+      logLookup("no matches", name);
       setLookupStatus(
         `We could not find “${name}” on the guest list. Try another name from the household.`
       );
       return;
     }
+
+    logLookup(
+      "matches",
+      matches.map((match) => match.household)
+    );
 
     if (matches.length === 1) {
       setLookupStatus("We found your invitation.");
@@ -428,8 +474,9 @@ async function lookupGuest() {
     setLookupStatus("");
     renderMatchChoices(matches);
   } catch (error) {
+    console.error("[find-you] lookup failed", error);
     setLookupStatus("");
-    showError("We could not look up that name right now. Please try again.");
+    showError(error.message || "We could not look up that name right now. Please try again.");
   } finally {
     lookupButton.disabled = false;
     lookupButton.textContent = "Find";

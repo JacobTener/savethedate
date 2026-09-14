@@ -68,14 +68,39 @@ function doPost(e) {
   }
 }
 
+function setup() {
+  getGuestSheet_();
+  getAddressSheet_();
+}
+
 function doGet(e) {
   const params = (e && e.parameter) || {};
 
   if (params.action === "lookup") {
-    return json_(lookupGuests_(params.name || ""), params.callback);
+    const result = lookupGuests_(params.name || "");
+
+    if (params.embed === "1") {
+      return embedLookup_(result);
+    }
+
+    return json_(result, params.callback);
   }
 
   return json_({ ok: true }, params.callback);
+}
+
+function embedLookup_(result) {
+  const payload = JSON.stringify({
+    source: "hannah-jake-lookup",
+    result: result,
+  }).replace(/</g, "\\u003c");
+
+  const html = HtmlService.createHtmlOutput(
+    "<script>window.top.postMessage(" + payload + ", \"*\");</script>"
+  );
+  html.setTitle("Guest lookup");
+  html.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  return html;
 }
 
 function lookupGuests_(rawName) {
