@@ -273,13 +273,13 @@ function getInvitePeople(match) {
   const members = getInviteMembers(match);
   const people = members.map((name, index) => ({
     name,
-    role: invitationHasPlusOne(match) && index > 0 ? "Plus one" : "Invited",
+    role: invitationHasPlusOne(match) && index > 0 ? "Guest" : "Invited",
     kind: invitationHasPlusOne(match) && index > 0 ? "plus-one" : "guest",
   }));
 
   if (hasUnnamedPlusOne(match)) {
     people.push({
-      name: "Plus one",
+      name: "Guest",
       role: "Included on this invitation",
       kind: "plus-one",
     });
@@ -296,7 +296,7 @@ function renderGuestCard(person) {
   const mark = document.createElement("span");
   mark.className = "guest-card-mark";
   mark.setAttribute("aria-hidden", "true");
-  mark.textContent = person.kind === "plus-one" && person.name === "Plus one" ? "+" : getInitials(person.name);
+  mark.textContent = person.kind === "plus-one" && person.name === "Guest" ? "+" : getInitials(person.name);
 
   const copy = document.createElement("div");
   copy.className = "guest-card-copy";
@@ -341,25 +341,14 @@ function renderPartyPanel(match) {
   summary.className = "party-summary";
 
   if (hasUnnamedPlusOne(match)) {
-    summary.textContent = "This save the date includes a plus one.";
+    summary.textContent = "This save the date includes a guest.";
   } else if (people.length > 1) {
     summary.textContent = "Everyone included on this save the date:";
   } else {
-    summary.textContent = "This save the date does not include a plus one.";
+    summary.textContent = "This save the date does not include a guest.";
   }
 
-  const searchAgain = document.createElement("button");
-  searchAgain.type = "button";
-  searchAgain.className = "search-again";
-  searchAgain.textContent = "Search a different name";
-  searchAgain.addEventListener("click", () => {
-    resetMatchState();
-    setLookupStatus("");
-    showError("");
-    lookupNameEl.focus();
-  });
-
-  partyPanel.append(heading, summary, renderGuestCards(people), searchAgain);
+  partyPanel.append(heading, summary, renderGuestCards(people));
   partyPanel.hidden = false;
   addressSection.hidden = false;
 }
@@ -579,7 +568,7 @@ async function submitAddress(event) {
       .join("; "),
     declining: "",
     plusOne: invitationHasPlusOne(selectedMatch) ? "yes" : "no",
-    plusOneName: hasUnnamedPlusOne(selectedMatch) ? "Plus one" : "",
+    plusOneName: hasUnnamedPlusOne(selectedMatch) ? "Guest" : "",
     address1: getTrimmedValue("address1"),
     address2: getTrimmedValue("address2"),
     city: getTrimmedValue("city"),

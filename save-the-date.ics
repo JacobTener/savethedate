@@ -23,7 +23,7 @@ END:VTIMEZONE
 BEGIN:VEVENT
 UID:save-the-date-2027-08-14@hannahandjake2027.com
 DTSTAMP:20260914T000000Z
-DTSTART;TZID=America/Chicago:20270814T160000
+DTSTART;TZID=America/Chicago:20270814T170000
 DTEND;TZID=America/Chicago:20270814T230000
 SUMMARY:Hannah Forrestal & Jacob Tener Wedding
 DESCRIPTION:Save the date for the wedding of Hannah Forrestal and Jacob Tener. Invitation to follow.

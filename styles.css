@@ -536,24 +536,6 @@ body::after {
   color: var(--accent);
 }
 
-.search-again {
-  justify-self: start;
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: rgba(28, 28, 28, 0.55);
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.search-again:hover {
-  color: var(--accent);
-}
-
 .field {
   display: grid;
   gap: 8px;

@@ -4,7 +4,7 @@ const eventDetails = {
   description:
     "Save the date for the wedding of Hannah Forrestal and Jacob Tener. Invitation to follow.",
   location: "Chicago, Illinois",
-  start: "2027-08-14T16:00:00-05:00",
+  start: "2027-08-14T17:00:00-05:00",
   end: "2027-08-14T23:00:00-05:00",
   timeZone: "America/Chicago",
   icsFileName: "save-the-date.ics",
