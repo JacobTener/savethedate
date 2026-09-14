@@ -365,27 +365,31 @@ function queryGuestList(name) {
     url.searchParams.set("callback", callbackName);
 
     const script = document.createElement("script");
+    let settled = false;
     const timeout = window.setTimeout(() => {
-      cleanup();
-      reject(new Error("lookup timed out"));
-    }, 15000);
+      finish(() => reject(new Error("lookup timed out")));
+    }, 20000);
 
-    function cleanup() {
+    function finish(action) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
       window.clearTimeout(timeout);
       delete window[callbackName];
       script.remove();
+      action();
     }
 
     window[callbackName] = (data) => {
-      cleanup();
-      resolve(data);
+      finish(() => resolve(data && typeof data === "object" ? data : { matches: [] }));
     };
 
+    script.async = true;
     script.src = url.toString();
-    script.onerror = () => {
-      cleanup();
-      reject(new Error("lookup failed"));
-    };
+    // Apps Script always 302s to googleusercontent.com. Browsers often fire
+    // onerror for that redirect even when the lookup later returns 200.
     document.head.appendChild(script);
   });
 }
@@ -409,7 +413,9 @@ async function lookupGuest() {
     const matches = result.matches || [];
 
     if (!matches.length) {
-      setLookupStatus("We could not find that name. Try another name from your household.");
+      setLookupStatus(
+        `We could not find “${name}” on the guest list. Try another name from the household.`
+      );
       return;
     }
 
