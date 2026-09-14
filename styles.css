@@ -37,14 +37,14 @@ body::before {
   height: 18rem;
   background: rgba(255, 255, 255, 0.45);
 }
-
+/* 
 body::after {
   right: -5rem;
   bottom: -6rem;
   width: 20rem;
   height: 20rem;
   background: rgba(194, 132, 95, 0.18);
-}
+} */
 
 .page-shell {
   min-height: 100vh;
