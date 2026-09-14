@@ -129,8 +129,8 @@ body::after {
 
 .photo-collage {
   display: grid;
-  grid-template-columns: 1.35fr 1fr 1fr;
-  grid-template-rows: 150px 150px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 10px;
   margin-top: 24px;
 }
@@ -138,30 +138,10 @@ body::after {
 .photo-collage img {
   display: block;
   width: 100%;
+  aspect-ratio: 1;
   height: 100%;
   object-fit: cover;
   border-radius: 16px;
-}
-
-.collage-hero {
-  grid-row: 1 / span 2;
-  object-position: center 18%;
-}
-
-.photo-collage img:nth-child(2) {
-  object-position: 20% 30%;
-}
-
-.photo-collage img:nth-child(3) {
-  object-position: 80% 40%;
-}
-
-.photo-collage img:nth-child(4) {
-  object-position: 40% 70%;
-}
-
-.photo-collage img:nth-child(5) {
-  object-position: 70% 80%;
 }
 
 .home-countdown {
@@ -689,13 +669,8 @@ body::after {
   }
 
   .photo-collage {
-    grid-template-columns: 1.2fr 1fr;
-    grid-template-rows: 140px 120px 120px;
-  }
-
-  .collage-hero {
-    grid-row: 1;
-    grid-column: 1 / span 2;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
   }
 
   .countdown {

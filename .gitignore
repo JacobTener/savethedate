@@ -1,6 +1,2 @@
-sms-blast/.env
-sms-blast/*.csv
-!sms-blast/guests.example.csv
-sms-blast/*.log
-sms-blast/sent-log.json
 node_modules/
+photos/
